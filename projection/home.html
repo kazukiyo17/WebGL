@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>蝴蝶与猫持续更新ing</title>
+</head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute  vec4 vPosition;
+attribute  vec4 vNormal;
+attribute vec2 vTexCoord;
+
+varying vec2 texCoord;
+varying vec3 N, L, E;
+
+uniform vec4 lightPosition;
+uniform mat4 viewMatrix;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 normalMatrix;
+void main()
+{  
+    vec3 pos = (modelViewMatrix * vPosition).xyz;
+
+    
+    if(lightPosition.w == 0.0) L = normalize(lightPosition.xyz);
+    else L = normalize( lightPosition.xyz - pos );
+	
+	E =  -normalize(pos);
+	N = normalize(vec3(normalMatrix*vNormal));
+
+    gl_Position = projectionMatrix *viewMatrix* modelViewMatrix * vPosition;
+	
+	texCoord = vTexCoord;
+    
+}
+</script>
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+uniform float shininess;
+varying vec3 N, L, E;
+
+varying vec2 texCoord; 
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+uniform sampler2D texture3;
+uniform sampler2D texture4;
+uniform int bTexCoord;
+
+void
+main()
+{
+	vec4 fColor;
+	vec3 H = normalize( L + E );
+	vec4 ambient = ambientProduct;
+	
+	float Kd = max( dot(L, N), 0.0 );
+	vec4  diffuse = Kd*diffuseProduct;
+	
+	float Ks = pow( max(dot(N, H), 0.0), shininess );
+	vec4  specular = Ks * specularProduct;
+	
+	if( dot(L, N) < 0.0 ) specular = vec4(0.0, 0.0, 0.0, 1.0);
+    fColor = ambient + diffuse +specular;
+    fColor.a = 1.0;
+	
+	//gl_FragColor = fColor;
+
+    if(bTexCoord==1)
+        gl_FragColor = fColor * texture2D( texture1, texCoord );
+    if(bTexCoord==2)
+        gl_FragColor = fColor * texture2D( texture2, texCoord );
+    if(bTexCoord==3)
+        gl_FragColor = fColor * texture2D( texture3, texCoord );
+    if(bTexCoord==4)
+        gl_FragColor = fColor * texture2D( texture4, texCoord );
+}
+</script>
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="cat.js"></script>
+
+<body>
+<canvas id="gl-canvas" width="1000" height="600"> Oops ... your browser doesn't support the HTML5 canvas element </canvas>
+
+<p>光源
+<button id = "lightforward">前进</button>
+<button id = "lightbackward">后退</button>
+<button id = "lightleft">左移</button>
+<button id = "lightright">右移</button>
+<button id = "lightup">上移</button>
+<button id = "lightdown">下移</button>
+
+</p>
+<p>猫猫
+<button id = "forwardCat">forwardCat</button>
+<button id = "backCat">backCat</button>
+<button id = "rotate1Cat">rotate1Cat</button>
+<button id = "rotate2Cat">rotate2Cat</button>
+<button id = "biggerCat">biggerCat</button>
+<button id = "smallerCat">smallerCat</button>
+</p>
+
+
+</p>
+<p>蝴蝶
+<button id = "forwardBuf">forwardBuf</button>
+<button id = "backBuf">backBuf</button>
+<button id = "rotate1Buf">rotate1Buf</button>
+<button id = "rotate2Buf">rotate2Buf</button>
+<button id = "biggerBuf">biggerBuf</button>
+<button id = "smallerBuf">smallerBuf</button>
+</p>
+<img id = "texImage1" src = "catface.jpg" hidden />
+<img id = "texImage2" src = "wing.jpg" hidden />
+<img id = "texImage3" src = "bly.jpg" hidden />
+<img id = "texImage4" src = "floor.JPG" hidden />
+</p>漫游
+<button id = "wander">wander</button>
+<button id = "stopwander">stopwander</button>
+</body>
+</html>
